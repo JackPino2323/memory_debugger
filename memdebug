@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# memdebug - Wrapper script to run programs with memory debugging
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <program> [args...]"
+    echo "Example: $0 ./my_program arg1 arg2"
+    exit 1
+fi
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_PATH="$SCRIPT_DIR/libmemdebug.so"
+
+# Check if the library exists
+if [ ! -f "$LIB_PATH" ]; then
+    echo "Error: libmemdebug.so not found at $LIB_PATH"
+    echo "Please run 'make' to build the library first."
+    exit 1
+fi
+
+# Run the program with the appropriate preload mechanism
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS uses DYLD_INSERT_LIBRARIES
+    DYLD_INSERT_LIBRARIES="$LIB_PATH" "$@"
+else
+    # Linux uses LD_PRELOAD
+    LD_PRELOAD="$LIB_PATH" "$@"
+fi
